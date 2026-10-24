@@ -2,18 +2,41 @@ import time
 import requests
 import yfinance as yf
 from datetime import datetime, timedelta
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import os
 
 # ==========================================
 # 1. إعدادات التيليجرام والأصول
 # ==========================================
-TELEGRAM_BOT_TOKEN "8951753821:AAH_zaJnrEeCnTRpuKca-sCOvAtYwPtQudE"
-BINARY_CHAT_ID "-100398434205"
+TELEGRAM_BOT_TOKEN = "8951753821:AAH_zaJnReEcNtRPukca-sC0VAtYwPtQuDE"
+BINARY_CHAT_ID = "-100398434205"
 
-# الأصول المتاحة في السوق الحي (Forex & Crypto)
-ASSETS = ["EURUSD=X", "GBPUSD=X", "USDJPY=X", "BTC-USD", "SOL-USD", "GC=F"]
+# الأصول المتاحة (Forex & Crypto) مضاف إليها الأزواج الجديدة
+ASSETS = [
+    "EURUSD=X", "GBPUSD=X", "USDJPY=X", 
+    "AUDUSD=X", "GBPJPY=X", "EURGBP=X", 
+    "USDCAD=X", "USDCHF=X", 
+    "BTC-USD", "SOL-USD", "GC=F"
+]
 
 # ==========================================
-# 2. دالة إرسال الرسائل إلى التيليجرام
+# 2. خادم ويب مصغر لإبقاء الخدمة نشطة (Web Service)
+# ==========================================
+class SimpleHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain")
+        self.end_headers()
+        self.wfile.write(b"Quotex Bot is running 24/7 successfully!")
+
+def run_web_server():
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(("0.0.0.0", port), SimpleHandler)
+    server.serve_forever()
+
+# ==========================================
+# 3. دالة إرسال الرسائل إلى التيليجرام
 # ==========================================
 def send_telegram_message(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -29,7 +52,7 @@ def send_telegram_message(message):
         print(f"خطأ في إرسال الرسالة: {e}")
 
 # ==========================================
-# 3. حساب مؤشر الزخم RSI (14)
+# 4. حساب مؤشر الزخم RSI (14)
 # ==========================================
 def calculate_rsi(data, window=14):
     delta = data['Close'].diff()
@@ -40,10 +63,9 @@ def calculate_rsi(data, window=14):
     return rsi.iloc[-1]
 
 # ==========================================
-# 4. تحليل الأصول وتوليد الإشارات
+# 5. تحليل الأصول وتوليد الإشارات
 # ==========================================
 def analyze_market():
-    # توقيت ليبيا (GMT+2)
     now_gmt2 = datetime.utcnow() + timedelta(hours=2)
     entry_time = now_gmt2.strftime("%H:%M")
     
@@ -87,18 +109,23 @@ def analyze_market():
         except Exception as e:
             print(f"خطأ أثناء تحليل {symbol}: {e}")
 
-# ==========================================
-# 5. تشغيل البوت بشكل مستمر كل 5 دقائق
-# ==========================================
-if __name__ == "__main__":
-    print("بدء تشغيل بوت الخيارات الثنائية على المنصة...")
-    send_telegram_message("🤖 **تم تفعيل بوت Quotex بنجاح على سيرفر التشغيل المستمر!**")
+# حلقة عمل البوت في الخلفية
+def run_bot():
+    print("بدء تشغيل بوت الخيارات الثنائية...")
+    send_telegram_message("🤖 **تم تفعيل بوت Quotex بنجاح مع الأزواج الجديدة!**")
     
     while True:
         try:
             analyze_market()
         except Exception as e:
             print(f"خطأ عام في حلقة التحليل: {e}")
-        
-        # الانتظار لمدة 300 ثانية (5 دقائق) قبل الفحص القادم
         time.sleep(300)
+
+if __name__ == "__main__":
+    # تشغيل بوت التحليل في خلفية منفصلة
+    bot_thread = threading.Thread(target=run_bot)
+    bot_thread.daemon = True
+    bot_thread.start()
+    
+    # تشغيل خادم الويب الأساسي لـ Render
+    run_web_server()
