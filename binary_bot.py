@@ -12,7 +12,7 @@ import os
 TELEGRAM_BOT_TOKEN = "8951753821:AAH_zaJnReEcNtRPukca-sC0VAtYwPtQuDE"
 BINARY_CHAT_ID = "-100398434205"
 
-# الأصول المتاحة (Forex & Crypto) مضاف إليها الأزواج الجديدة
+# الأصول المتاحة (Forex & Crypto)
 ASSETS = [
     "EURUSD=X", "GBPUSD=X", "USDJPY=X", 
     "AUDUSD=X", "GBPJPY=X", "EURGBP=X", 
@@ -21,14 +21,19 @@ ASSETS = [
 ]
 
 # ==========================================
-# 2. خادم ويب مصغر لإبقاء الخدمة نشطة (Web Service)
+# 2. خادم ويب مصغر محدث ليتوافق مع UptimeRobot
 # ==========================================
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
-        self.send_header("Content-type", "text/plain")
+        self.send_header("Content-type", "text/html; charset=utf-8")
         self.end_headers()
-        self.wfile.write(b"Quotex Bot is running 24/7 successfully!")
+        self.wfile.write(b"OK")
+        
+    def do_HEAD(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/html; charset=utf-8")
+        self.end_headers()
 
 def run_web_server():
     port = int(os.environ.get("PORT", 10000))
@@ -112,7 +117,7 @@ def analyze_market():
 # حلقة عمل البوت في الخلفية
 def run_bot():
     print("بدء تشغيل بوت الخيارات الثنائية...")
-    send_telegram_message("🤖 **تم تفعيل بوت Quotex بنجاح مع الأزواج الجديدة!**")
+    send_telegram_message("🤖 **تم تفعيل بوت Quotex بنجاح وتحديث خادم الويب!**")
     
     while True:
         try:
