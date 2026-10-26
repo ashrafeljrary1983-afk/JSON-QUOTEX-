@@ -12,12 +12,12 @@ import os
 TELEGRAM_BOT_TOKEN = "8951753821:AAH_zaJnReEcNtRPukca-sC0VAtYwPtQuDE"
 BINARY_CHAT_ID = "-100398434205"
 
-# الأصول المتاحة (Forex & Crypto)
+# الأصول المتاحة (Forex, Crypto & Metals)
 ASSETS = [
     "EURUSD=X", "GBPUSD=X", "USDJPY=X", 
     "AUDUSD=X", "GBPJPY=X", "EURGBP=X", 
     "USDCAD=X", "USDCHF=X", 
-    "BTC-USD", "SOL-USD", "GC=F"
+    "BTC-USD", "SOL-USD", "GC=F", "SI=F"
 ]
 
 # ==========================================
@@ -76,7 +76,7 @@ def analyze_market():
     
     for symbol in ASSETS:
         try:
-            display_symbol = symbol.replace("=X", "").replace("-USD", "/USD").replace("GC=F", "XAU/USD")
+            display_symbol = symbol.replace("=X", "").replace("-USD", "/USD").replace("GC=F", "XAU/USD").replace("SI=F", "SILVER/USD")
             
             ticker = yf.Ticker(symbol)
             df = ticker.history(period="1d", interval="5m")
@@ -120,7 +120,7 @@ def run_bot():
     # إرسال رسالة تأكيد فورية للقناة للتأكد من نجاح الربط والصلاحيات
     send_telegram_message(
         "🤖 **تم تفعيل بوت Quotex وربطه بنجاح تام!**\n\n"
-        "✅ البوت يعمل الآن على مراقبة 11 أصلاً (فوركس وعملات رقمية وذهب) على مدار 24/7.\n"
+        "✅ البوت يعمل الآن على مراقبة الأصول المتاحة (فوركس وعملات رقمية وذهب وفظة) على مدار 24/7.\n"
         "🔔 سيتم إرسال الإشارات فور توافر الشروط الفنية."
     )
     
